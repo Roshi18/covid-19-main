@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COVID-19 Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .container {
+            margin: 20px 0;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        input, button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>COVID-19 Tracker</h1>
+
+    <div class="container">
+        <h2>Hospital Resources</h2>
+        <input type="text" id="region" placeholder="Enter Region (e.g., California)">
+        <button onclick="fetchHospitalResources()">Get Resources</button>
+        <pre id="hospital-output"></pre>
+
+        <h3>Update Hospital Resources</h3>
+        <input type="number" id="available_beds" placeholder="Available Beds">
+        <input type="number" id="ventilators_available" placeholder="Ventilators Available">
+        <input type="number" id="icu_capacity" placeholder="ICU Capacity">
+        <button onclick="updateHospitalResources()">Update Resources</button>
+    </div>
+
+    <div class="container">
+        <h2>COVID-19 Cases</h2>
+        <button onclick="fetchCovidCases()">Get Cases</button>
+        <pre id="cases-output"></pre>
+
+        <h3>Update COVID-19 Cases</h3>
+        <input type="number" id="active_cases" placeholder="Active Cases">
+        <input type="number" id="recoveries" placeholder="Recoveries">
+        <input type="number" id="deaths" placeholder="Deaths">
+        <button onclick="updateCovidCases()">Update Cases</button>
+    </div>
+
+    <div class="container">
+        <h2>Vaccination Status</h2>
+        <button onclick="fetchVaccinationStatus()">Get Vaccination Status</button>
+        <pre id="vaccination-output"></pre>
+
+        <h3>Update Vaccination Status</h3>
+        <input type="number" id="total_doses" placeholder="Total Doses Administered">
+        <input type="number" id="percentage_vaccinated" placeholder="Percentage Vaccinated">
+        <button onclick="updateVaccinationStatus()">Update Vaccination Status</button>
+    </div>
+
+    <script>
+        const apiUrl = 'http://localhost:3000';
+
+        async function fetchHospitalResources() {
+            const region = document.getElementById('region').value;
+            const response = await fetch(`${apiUrl}/covid/hospitals/resources?region=${region}`);
+            const data = await response.json();
+            document.getElementById('hospital-output').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function updateHospitalResources() {
+            const region = document.getElementById('region').value.toLowerCase();
+            const available_beds = document.getElementById('available_beds').value;
+            const ventilators_available = document.getElementById('ventilators_available').value;
+            const icu_capacity = document.getElementById('icu_capacity').value;
+            await fetch(`${apiUrl}/covid/hospitals/resources/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ region, available_beds, ventilators_available, icu_capacity })
+            });
+            alert('Hospital resources updated');
+        }
+
+        async function fetchCovidCases() {
+            const response = await fetch(`${apiUrl}/covid/cases`);
+            const data = await response.json();
+            document.getElementById('cases-output').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function updateCovidCases() {
+            const region = document.getElementById('region').value.toLowerCase();  // Ensure region is lowercase
+            const active_cases = document.getElementById('active_cases').value;
+            const recoveries = document.getElementById('recoveries').value;
+            const deaths = document.getElementById('deaths').value;
+
+            const response = await fetch(`${apiUrl}/covid/cases/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    region,
+                    active_cases: active_cases || 0,  // Default to 0 if empty
+                    recoveries: recoveries || 0,  // Default to 0 if empty
+                    deaths: deaths || 0  // Default to 0 if empty
+                })
+            });
+
+            const data = await response.json();
+            alert(data.message);  // Show the response message
+        }
+
+        async function fetchVaccinationStatus() {
+            const response = await fetch(`${apiUrl}/covid/vaccination-status`);
+            const data = await response.json();
+            document.getElementById('vaccination-output').innerText = JSON.stringify(data, null, 2);
+        }
+
+        async function updateVaccinationStatus() {
+            const region = document.getElementById('region').value.toLowerCase();  // Ensure region is lowercase
+            const total_doses = document.getElementById('total_doses').value;
+            const percentage_vaccinated = document.getElementById('percentage_vaccinated').value;
+
+            const response = await fetch(`${apiUrl}/covid/vaccination-status/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    region,
+                    total_doses: total_doses || 0,  // Default to 0 if empty
+                    percentage_vaccinated: percentage_vaccinated || 0  // Default to 0 if empty
+                })
+            });
+
+            const data = await response.json();
+            alert(data.message);  // Show the response message
+        }
+    </script>
+</body>
+</html>
